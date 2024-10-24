@@ -1,10 +1,15 @@
 from tkinter import ttk
 import tkinter as tk
+from typing import List
+
 from PIL import Image, ImageTk
 import requests
 from PIL.ImageOps import expand
 from dataclass_wizard import fromdict
 from models.apiResponse import APIResponse
+from models.empresa import Empresa
+from models.product import Product
+from tkinter import messagebox as alert
 
 print("CARGANDO")
 
@@ -15,17 +20,24 @@ api_response = fromdict(APIResponse, body)
 
 indice = 6
 
-# def buscar():
-#     global product_list
-#     texto = buscarProducto.get().lower()
-#     productos_busqueda = list(filter(lambda producto: texto in producto.title.lower(), product_list.products))
-#     productos_busqueda.sort(key=lambda producto: producto.title)
-#     mostrar_listado(productos_busqueda)
-#
-# def mostrar_listado(productos: List[Product]):
-#     pantalla_listado_productos = tk.Tk()
-#     for producto in productos:
-#         ttk.Label(pantalla_listado_productos, text=producto.title).pack()
+def buscar():
+    global api_response
+    texto = buscarProducto.get().lower()
+    busquedaProductos = list(filter(lambda producto: texto in producto.title.lower(), api_response.products))
+    busquedaProductos.sort(key=lambda producto: producto.title)
+    mostrar_listado(busquedaProductos)
+
+def mostrar_listado(productos: List[Product]):
+    listaProductos = tk.Tk()
+    listaProductos.title("Títulos Productos")
+    pantallaListado = ttk.Frame(listaProductos, padding="10")
+    pantallaListado.pack()
+    ttk.Label(pantallaListado, text="Productos", font=("Helvetica", 16, "bold")).pack()
+    contenedorListado = ttk.Frame(pantallaListado, padding="10")
+    contenedorListado.pack()
+    for producto in productos:
+        ttk.Label(contenedorListado, text=producto.title, width = 50, justify="left").pack()
+    ttk.Button(pantallaListado, text="Generar PDF", command=generarPDF(productos)).pack()
 
 
 # Load Imagen from url
@@ -35,6 +47,16 @@ def load_image(url, size=(300, 300)):
     response_img.close()
     return ImageTk.PhotoImage(img)
 
+def generarPDF(productos: List[Product]):
+    empresa: Empresa = Empresa(
+        nombre="Samu",
+        titular="Samu",
+        cif="75798643F",
+        direccion="Calle Bote 34A",
+        email="hola@gmail.com"
+    )
+    # genero pdf(nombre=busqueda_resultado_202410241344.pdf)
+    alert.showinfo("PDF Generado", "Se ha generado el PDF correctamente")
 
 # Update UI when changing product
 def update():
@@ -97,7 +119,7 @@ root.title("Productos")
 
 # Main Frame
 main_frame = ttk.Frame(root, padding="10")
-main_frame.grid(row=0, column=0, sticky=(tk.W, tk.E, tk.N, tk.S))
+main_frame.grid(row=1, column=0, sticky=(tk.W, tk.E, tk.N, tk.S))
 root.columnconfigure(0, weight=1)
 root.rowconfigure(0, weight=1)
 
@@ -156,6 +178,15 @@ buttons_frame = ttk.Frame(main_frame)
 buttons_frame.grid(row=2, column=0, columnspan=2, pady=(10, 0))
 ttk.Button(buttons_frame, text="Anterior", command=anterior).grid(row=0, column=0, padx=10)
 ttk.Button(buttons_frame, text="Siguiente", command=siguiente).grid(row=0, column=1, padx=10)
+
+# Buttons frame
+buscador = ttk.Frame(root)
+buscador.grid(row=0, column=0, columnspan=2, pady=(10, 0))
+ttk.Label(buscador, text = "Productos").grid(row=0, column=0)
+ttk.Label(buscador, text="Buscar Productos").grid(row=0, column=0)
+buscarProducto = ttk.Entry(buscador)
+buscarProducto.grid(row=0, column=1, padx=10)
+ttk.Button(buscador, text="Buscar", command=buscar).grid(row=0, column=2, padx=10)
 
 print("CARGADO")
 root.mainloop()
